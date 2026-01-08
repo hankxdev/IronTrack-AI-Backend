@@ -1,0 +1,26 @@
+# Binaries and databases
+*.db
+*.exe
+*.test
+*.out
+server
+
+# Development
+.git
+.gitignore
+.env
+.vscode
+.idea
+
+# Tests
+tests/
+*_test.go
+
+# Documentation
+README.md
+*.md
+
+# Misc
+.DS_Store
+*.swp
+*.swo

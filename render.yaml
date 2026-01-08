@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: irontrack-backend
+    runtime: docker
+    plan: free
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DATABASE_PATH
+        value: /data/irontrack.db
+    disk:
+      name: irontrack-data
+      mountPath: /data
+      sizeGB: 1

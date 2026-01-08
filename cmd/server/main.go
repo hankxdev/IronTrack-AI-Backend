@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"irontrack-backend/internal/database"
 	"irontrack-backend/internal/router"
@@ -12,6 +13,12 @@ func main() {
 
 	r := router.SetupRouter()
 
-	log.Println("Server running on port 8080")
-	r.Run(":8080")
+	// Get port from environment variable, default to 8080
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("Server running on port %s", port)
+	r.Run(":" + port)
 }
