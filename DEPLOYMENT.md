@@ -52,6 +52,8 @@ If you prefer to set up manually without the blueprint:
    JWT_SECRET=<auto-generate or use your own>
    GEMINI_API_KEY=<your-api-key-here>
    DATABASE_PATH=/data/irontrack.db
+   ALLOWED_ORIGINS=https://your-frontend-domain.com
+   GIN_MODE=release
    ```
 
 4. **Add a persistent disk**:
@@ -65,12 +67,14 @@ If you prefer to set up manually without the blueprint:
 
 ## Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `PORT` | Server port (auto-set by Render) | No (auto) |
-| `JWT_SECRET` | Secret key for JWT token signing | Yes |
-| `GEMINI_API_KEY` | Google Gemini API key for AI features | Yes |
-| `DATABASE_PATH` | Path to SQLite database file | No (defaults to `/data/irontrack.db`) |
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| `PORT` | Server port (auto-set by Render) | No (auto) | 8080 |
+| `JWT_SECRET` | Secret key for JWT token signing | Yes | - |
+| `GEMINI_API_KEY` | Google Gemini API key for AI features | Yes | - |
+| `DATABASE_PATH` | Path to SQLite database file | No | irontrack.db |
+| `ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins | No | * (all) |
+| `GIN_MODE` | Gin framework mode (release/debug) | No | debug |
 
 ## Persistent Storage
 
@@ -83,7 +87,21 @@ The SQLite database is stored on Render's persistent disk at `/data/irontrack.db
 
 ## Testing Your Deployment
 
-Once deployed, your API will be available at: `https://your-service-name.onrender.com`
+### Health Check
+
+Test the health endpoint (useful for monitoring):
+```bash
+curl https://your-service-name.onrender.com/health
+```
+
+Expected response:
+```json
+{"status":"healthy","service":"irontrack-backend"}
+```
+
+### API Test
+
+Test user registration available at: `https://your-service-name.onrender.com`
 
 Test the health of your service:
 ```bash
@@ -121,9 +139,8 @@ To backup your SQLite database from Render:
 ## Troubleshooting
 
 ### Build Fails
-- Check that all required dependencies are in `go.mod`
-- Verify the Dockerfile includes CGO dependencies (`gcc`, `musl-dev`, `sqlite-dev`)
-
+- Check that all required Set `ALLOWED_ORIGINS` environment variable to your frontend domain(s) (e.g., `https://myapp.com,https://www.myapp.com`)
+- **Monitoring**: Set up Render's built-in monitoring and alerts, use `/health` endpoint for health check
 ### Database Not Persisting
 - Ensure the persistent disk is mounted at `/data`
 - Verify `DATABASE_PATH` environment variable is set to `/data/irontrack.db`
