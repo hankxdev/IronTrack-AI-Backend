@@ -5,21 +5,21 @@ import (
 
 	"irontrack-backend/internal/models"
 
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 var DB *gorm.DB
 
 // ConnectDatabase initializes the database connection.
-// If dsn is empty, it uses a default local postgres connection string.
+// If dsn is empty, it uses a default SQLite database file.
 func ConnectDatabase(dsn string) {
 	if dsn == "" {
-		dsn = "host=localhost user=hankmendix dbname=irontrack port=5432 sslmode=disable TimeZone=UTC"
+		dsn = "irontrack.db"
 	}
 
 	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	DB, err = gorm.Open(sqlite.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
