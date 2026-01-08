@@ -3,6 +3,9 @@ package router
 import (
 	"irontrack-backend/internal/auth"
 	"irontrack-backend/internal/handlers"
+	"net/http"
+	"os"
+	"strings"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -13,9 +16,28 @@ func SetupRouter() *gin.Engine {
 
 	// CORS Setup
 	config := cors.DefaultConfig()
-	config.AllowAllOrigins = true
+	
+	// Read allowed origins from environment variable
+	// Format: ALLOWED_ORIGINS=https://example.com,https://app.example.com
+	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
+	if allowedOrigins != "" {
+		config.AllowOrigins = strings.Split(allowedOrigins, ",")
+	} else {
+		// Default to allow all for development
+		config.AllowAllOrigins = true
+	}
+	
 	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
+	config.AllowCredentials = true
 	r.Use(cors.New(config))
+
+	// Health check endpoint (no auth required)
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "healthy",
+			"service": "irontrack-backend",
+		})
+	})
 
 	// Routes
 	api := r.Group("/api")
