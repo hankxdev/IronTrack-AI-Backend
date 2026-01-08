@@ -14,6 +14,18 @@ import (
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
+	// Trusted Proxies Setup
+	// For Render.com and other cloud platforms, we trust their reverse proxies
+	// This can be configured via TRUSTED_PROXIES env var (comma-separated CIDRs)
+	// If not set, we don't trust any proxy (safest for security)
+	trustedProxies := os.Getenv("TRUSTED_PROXIES")
+	if trustedProxies != "" {
+		r.SetTrustedProxies(strings.Split(trustedProxies, ","))
+	} else {
+		// Don't trust any proxies by default (most secure)
+		r.SetTrustedProxies(nil)
+	}
+
 	// CORS Setup
 	config := cors.DefaultConfig()
 	

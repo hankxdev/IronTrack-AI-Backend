@@ -74,7 +74,10 @@ If you prefer to set up manually without the blueprint:
 | `GEMINI_API_KEY` | Google Gemini API key for AI features | Yes | - |
 | `DATABASE_PATH` | Path to SQLite database file | No | irontrack.db |
 | `ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins | No | * (all) |
+| `TRUSTED_PROXIES` | Comma-separated list of trusted proxy CIDRs | No | none |
 | `GIN_MODE` | Gin framework mode (release/debug) | No | debug |
+
+**Note on TRUSTED_PROXIES**: For Render.com, you typically don't need to set this as we disable proxy trust by default for security. Only set this if you need to read `X-Forwarded-For` headers for real client IP addresses.
 
 ## Persistent Storage
 
