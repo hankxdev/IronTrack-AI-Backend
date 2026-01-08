@@ -20,7 +20,7 @@ jobs:
 
       - name: Build binary
         run: |
-          GOOS=linux GOARCH=amd64 go build /cmd/server -o irontrack
+          GOOS=linux GOARCH=amd64 go build -o irontrack ./cmd/server
 
       - name: Upload and restart service
         uses: appleboy/scp-action@v0.1.7
