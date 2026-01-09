@@ -64,3 +64,19 @@ jobs:
               echo "⚠️ Service irontrack not found."
               echo "You can create it at /etc/systemd/system/irontrack.service"
             fi
+
+      - name: Health Check
+        run: |
+          echo "🔍 Checking health at https://b.momane.com/health..."
+          # Try up to 5 times with 10s delay
+          for i in {1..5}; do
+            RESPONSE=$(curl -s https://b.momane.com/health)
+            if echo "$RESPONSE" | grep -q '"status":"healthy"'; then
+              echo "✅ Health check passed: $RESPONSE"
+              exit 0
+            fi
+            echo "⏳ Waiting for service to be healthy (attempt $i/5)..."
+            sleep 10
+          done
+          echo "❌ Health check failed after 5 attempts"
+          exit 1
