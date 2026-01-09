@@ -2,10 +2,7 @@ package database
 
 import (
 	"log"
-	"os"
-
 	"irontrack-backend/internal/models"
-
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

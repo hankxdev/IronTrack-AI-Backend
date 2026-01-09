@@ -1,0 +1,5 @@
+server
+.DS_Store
+*.swp
+.vscode
+/cmd/server/server
