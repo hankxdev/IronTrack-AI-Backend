@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"irontrack-backend/internal/database"
+	"irontrack-backend/internal/models"
 	"net/http"
 	"strings"
 
@@ -33,6 +35,33 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		c.Set("userID", claims.UserID)
 		c.Set("email", claims.Email)
+		c.Next()
+	}
+}
+
+// AdminMiddleware checks if the user is an admin
+func AdminMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetString("userID")
+		if userID == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.Abort()
+			return
+		}
+
+		var user models.User
+		if err := database.DB.Select("is_admin").Where("id = ?", userID).First(&user).Error; err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+			c.Abort()
+			return
+		}
+
+		if !user.IsAdmin {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Admin access required"})
+			c.Abort()
+			return
+		}
+
 		c.Next()
 	}
 }

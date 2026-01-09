@@ -87,8 +87,9 @@ func CreateLog(c *gin.Context) {
 func GetExercises(c *gin.Context) {
 	userID := c.GetString("userID")
 	var exercises []models.ExerciseDefinition
-	// Fetch both personal and system-wide exercises
-	if err := database.DB.Where("user_id = ? OR user_id IS NULL", userID).Find(&exercises).Error; err != nil {
+	
+	// Fetch global exercises OR exercises created by this user
+	if err := database.DB.Where("is_global = ? OR user_id = ?", true, userID).Find(&exercises).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch exercises"})
 		return
 	}
@@ -102,7 +103,9 @@ func CreateExercise(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	
 	exercise.UserID = &userID
+	exercise.IsGlobal = false // User exercises are never global
 
 	if err := database.DB.Create(&exercise).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create exercise"})
@@ -114,11 +117,45 @@ func CreateExercise(c *gin.Context) {
 func DeleteExercise(c *gin.Context) {
 	userID := c.GetString("userID")
 	exerciseID := c.Param("id")
-	if err := database.DB.Where("id = ? AND (user_id = ? OR user_id IS NULL)", exerciseID, userID).Delete(&models.ExerciseDefinition{}).Error; err != nil {
+	
+	// Only allow deleting user's own exercises (not global ones)
+	if err := database.DB.Where("id = ? AND user_id = ?", exerciseID, userID).Delete(&models.ExerciseDefinition{}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete exercise"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Exercise deleted"})
+}
+
+// BulkUploadExercises allows admins to upload global exercises
+func BulkUploadExercises(c *gin.Context) {
+	var exercises []models.ExerciseDefinition
+	if err := c.ShouldBindJSON(&exercises); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format", "details": err.Error()})
+		return
+	}
+
+	if len(exercises) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No exercises provided"})
+		return
+	}
+
+	// Mark all exercises as global and set UserID to nil
+	for i := range exercises {
+		exercises[i].IsGlobal = true
+		exercises[i].UserID = nil
+	}
+
+	// Bulk insert exercises
+	if err := database.DB.Create(&exercises).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload exercises", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Global exercises uploaded successfully",
+		"count":   len(exercises),
+		"data":    exercises,
+	})
 }
 
 // --- Profile ---

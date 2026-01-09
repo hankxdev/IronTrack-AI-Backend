@@ -11,6 +11,7 @@ type User struct {
 	Email     string         `gorm:"uniqueIndex;type:text" json:"email"`
 	Password  string         `gorm:"type:text" json:"-"` // Stored as hash
 	Name      string         `gorm:"type:text" json:"name"`
+	IsAdmin   bool           `gorm:"default:false" json:"isAdmin"`
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
@@ -35,12 +36,12 @@ type UserProfile struct {
 }
 
 type ExerciseDefinition struct {
-	ID     string  `gorm:"primaryKey;type:text" json:"id"`
-	UserID *string `gorm:"index;type:text" json:"userId"` // Can be null for system exercises? For now, let's copy system exercises to user or make them global.
-	// For simplicity, we'll store all user custom exercises here. Defaults can be handled by a seeder or frontend logic (or a "is_system" flag).
-	Name         string `gorm:"type:text" json:"name"`
-	MuscleGroup  string `gorm:"type:text" json:"muscleGroup"`
-	Instructions string `gorm:"type:text" json:"instructions,omitempty"`
+	ID           string  `gorm:"primaryKey;type:text" json:"id"`
+	UserID       *string `gorm:"index;type:text" json:"userId,omitempty"` // Null for global exercises
+	IsGlobal     bool    `gorm:"default:false" json:"isGlobal"`
+	Name         string  `gorm:"type:text" json:"name"`
+	MuscleGroup  string  `gorm:"type:text" json:"muscleGroup"`
+	Instructions string  `gorm:"type:text" json:"instructions,omitempty"`
 }
 
 type WorkoutPlan struct {

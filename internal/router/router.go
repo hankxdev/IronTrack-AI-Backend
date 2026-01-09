@@ -84,6 +84,14 @@ func SetupRouter() *gin.Engine {
 			protected.POST("/ai/generate-plan", handlers.GenerateWorkoutPlan)
 			protected.POST("/ai/generate-report", handlers.GenerateProgressReport)
 		}
+
+		// Admin-only routes
+		admin := api.Group("/admin")
+		admin.Use(auth.AuthMiddleware())
+		admin.Use(auth.AdminMiddleware())
+		{
+			admin.POST("/exercises/bulk", handlers.BulkUploadExercises)
+		}
 	}
 	return r
 }

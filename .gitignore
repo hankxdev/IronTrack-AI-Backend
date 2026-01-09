@@ -3,3 +3,4 @@ server
 *.swp
 .vscode
 /cmd/server/server
+.env
