@@ -6,9 +6,14 @@ import (
 
 	"irontrack-backend/internal/database"
 	"irontrack-backend/internal/router"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load .env file (ignore error in production where env vars may be set directly)
+	_ = godotenv.Load()
+
 	database.InitDatabase()
 
 	r := router.SetupRouter()

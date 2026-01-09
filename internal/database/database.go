@@ -34,7 +34,7 @@ func ConnectDatabase(dsn string) {
 			
 			user := os.Getenv("DB_USER")
 			if user == "" {
-				user = "postgres"
+				user = "hankmendix"
 			}
 			
 			password := os.Getenv("DB_PASSWORD")

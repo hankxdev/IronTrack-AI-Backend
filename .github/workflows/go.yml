@@ -1,9 +1,9 @@
-name: Deploy to DigitalOcean
+name: Deploy IronTrack to DigitalOcean
 
 on:
   push:
     branches:
-      - master  # 只在 main 分支 push 时触发
+      - main  # 只在 main 分支 push 时触发
 
 jobs:
   build-and-deploy:
@@ -16,27 +16,51 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25.5'   # 你实际使用的 Go 版本
+          go-version: '1.25'
 
-      - name: Build binary
+      - name: Build Linux binary
         run: |
-          GOOS=linux GOARCH=amd64 go build -o irontrack ./cmd/server
+          mkdir -p build
+          GOOS=linux GOARCH=amd64 go build -o build/irontrack ./cmd/server
 
-      - name: Upload and restart service
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          source: "irontrack"
-          target: "/srv/irontrack/"
-
-      - name: Restart systemd service
+      - name: Stop service before deploy
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
+          script_stop: false
           script: |
-            systemctl restart myapp
-            systemctl status myapp --no-pager
+            if systemctl list-units --type=service | grep -q irontrack.service; then
+              echo "🛑 Stopping irontrack..."
+              systemctl stop irontrack
+            else
+              echo "⚠️ irontrack.service not found, skipping stop."
+            fi
+
+      - name: Upload new binary
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          source: "build/irontrack"
+          target: "/srv/"
+          overwrite: true
+
+      - name: Start service after deploy
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script_stop: false
+          script: |
+            if systemctl list-units --type=service | grep -q irontrack.service; then
+              echo "🚀 Starting irontrack..."
+              systemctl start irontrack
+              systemctl status irontrack --no-pager
+            else
+              echo "⚠️ Service irontrack not found."
+              echo "You can create it at /etc/systemd/system/irontrack.service"
+            fi

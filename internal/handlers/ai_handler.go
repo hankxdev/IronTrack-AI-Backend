@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"irontrack-backend/internal/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/generative-ai-go/genai"
+	"github.com/google/uuid"
 	"google.golang.org/api/option"
 )
 
@@ -39,7 +41,7 @@ func GenerateWorkoutPlan(c *gin.Context) {
 
 	model := client.GenerativeModel("gemini-2.5-flash")
 	model.ResponseMIMEType = "application/json"
-	model.SystemInstruction = genai.NewUserContent(genai.Text("You are an expert fitness coach. Create structured, safe, and effective workout plans tailored to the user's biometrics and goals. Output JSON matching the schema: {name, description, targetGoal, exercises: [{name, defaultSets, defaultReps, muscleGroup, instructions}]}"))
+	model.SystemInstruction = genai.NewUserContent(genai.Text("You are an expert fitness coach. Create structured, safe, and effective workout plans tailored to the user's biometrics and goals. Output JSON matching the schema: {name, description, targetGoal, exercises: [{name, defaultSets (int), defaultReps (int), muscleGroup, instructions}]}. IMPORTANT: defaultSets and defaultReps must be strictly integers, not strings or ranges."))
 
 	prompt := fmt.Sprintf(`Create a workout plan for a user with the following profile:
       - Gender: %s
@@ -68,14 +70,21 @@ func GenerateWorkoutPlan(c *gin.Context) {
 		}
 	}
 
-	// Validate JSON
-	var js map[string]interface{}
-	if err := json.Unmarshal([]byte(resultText), &js); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid JSON from AI"})
+	// Validate and parse into WorkoutPlan model
+	var plan models.WorkoutPlan
+	if err := json.Unmarshal([]byte(resultText), &plan); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid JSON from AI: " + err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, js)
+	// Populate metadata fields
+	userID := c.GetString("userID")
+	plan.ID = uuid.New().String()
+	plan.UserID = userID
+	plan.IsAiGenerated = true
+	plan.CreatedAt = time.Now()
+
+	c.JSON(http.StatusOK, plan)
 }
 
 type ReportRequest struct {
@@ -101,7 +110,7 @@ func GenerateProgressReport(c *gin.Context) {
 	}
 	defer client.Close()
 
-	model := client.GenerativeModel("gemini-1.5-flash-001")
+	model := client.GenerativeModel("gemini-2.5-flash")
 	model.SystemInstruction = genai.NewUserContent(genai.Text("You are an encouraging data-driven fitness coach."))
 
 	prompt := fmt.Sprintf(`
