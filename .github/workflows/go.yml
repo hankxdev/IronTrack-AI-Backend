@@ -56,14 +56,9 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           script_stop: false
           script: |
-            if systemctl list-units --type=service | grep -q irontrack.service; then
-              echo "🚀 Starting irontrack..."
-              systemctl start irontrack
-              systemctl status irontrack --no-pager
-            else
-              echo "⚠️ Service irontrack not found."
-              echo "You can create it at /etc/systemd/system/irontrack.service"
-            fi
+            echo "🚀 Starting irontrack..."
+            systemctl start irontrack
+            systemctl status irontrack --no-pager
 
       - name: Health Check
         run: |
