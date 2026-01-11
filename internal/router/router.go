@@ -28,7 +28,7 @@ func SetupRouter() *gin.Engine {
 
 	// CORS Setup
 	config := cors.DefaultConfig()
-	
+
 	// Read allowed origins from environment variable
 	// Format: ALLOWED_ORIGINS=https://example.com,https://app.example.com
 	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
@@ -38,15 +38,16 @@ func SetupRouter() *gin.Engine {
 		// Default to allow all for development
 		config.AllowAllOrigins = true
 	}
-	
+
 	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	config.AllowCredentials = true
 	r.Use(cors.New(config))
+	r.Use(DevelopmentLogger())
 
 	// Health check endpoint (no auth required)
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"status": "healthy",
+			"status":  "healthy",
 			"service": "irontrack-backend",
 		})
 	})

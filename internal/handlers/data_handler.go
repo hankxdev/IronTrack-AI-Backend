@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"irontrack-backend/internal/database"
 	"irontrack-backend/internal/models"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // --- Plans ---
@@ -87,7 +89,7 @@ func CreateLog(c *gin.Context) {
 func GetExercises(c *gin.Context) {
 	userID := c.GetString("userID")
 	var exercises []models.ExerciseDefinition
-	
+
 	// Fetch global exercises OR exercises created by this user
 	if err := database.DB.Where("is_global = ? OR user_id = ?", true, userID).Find(&exercises).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch exercises"})
@@ -103,7 +105,7 @@ func CreateExercise(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	exercise.UserID = &userID
 	exercise.IsGlobal = false // User exercises are never global
 
@@ -117,9 +119,35 @@ func CreateExercise(c *gin.Context) {
 func DeleteExercise(c *gin.Context) {
 	userID := c.GetString("userID")
 	exerciseID := c.Param("id")
-	
-	// Only allow deleting user's own exercises (not global ones)
-	if err := database.DB.Where("id = ? AND user_id = ?", exerciseID, userID).Delete(&models.ExerciseDefinition{}).Error; err != nil {
+
+	var exercise models.ExerciseDefinition
+	if err := database.DB.Where("id = ?", exerciseID).First(&exercise).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Exercise not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load exercise"})
+		return
+	}
+
+	var user models.User
+	if err := database.DB.Select("is_admin").Where("id = ?", userID).First(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify user permissions"})
+		return
+	}
+
+	// Non-admins can only delete their own exercises, admins can delete any (including global)
+	if exercise.UserID == nil {
+		if !user.IsAdmin {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Only admins can delete global exercises"})
+			return
+		}
+	} else if *exercise.UserID != userID && !user.IsAdmin {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You are not allowed to delete this exercise"})
+		return
+	}
+
+	if err := database.DB.Delete(&exercise).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete exercise"})
 		return
 	}
