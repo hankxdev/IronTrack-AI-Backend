@@ -91,6 +91,27 @@ func SetupRouter() *gin.Engine {
 		admin.Use(auth.AuthMiddleware())
 		admin.Use(auth.AdminMiddleware())
 		{
+			admin.GET("/summary", handlers.AdminSummary)
+
+			// Users
+			admin.GET("/users", handlers.AdminListUsers)
+			admin.POST("/users", handlers.AdminCreateUser)
+			admin.PUT("/users/:id", handlers.AdminUpdateUser)
+			admin.DELETE("/users/:id", handlers.AdminDeleteUser)
+
+			// Plans
+			admin.GET("/plans", handlers.AdminListPlans)
+			admin.POST("/plans", handlers.AdminCreatePlan)
+			admin.DELETE("/plans/:id", handlers.AdminDeletePlan)
+
+			// Exercises
+			admin.GET("/exercises", handlers.AdminListExercises)
+			admin.POST("/exercises", handlers.AdminCreateExercise)
+			admin.DELETE("/exercises/:id", handlers.AdminDeleteExercise)
+
+			// AI Requests log
+			admin.GET("/ai-requests", handlers.AdminListAIRequests)
+
 			admin.POST("/exercises/bulk", handlers.BulkUploadExercises)
 		}
 	}

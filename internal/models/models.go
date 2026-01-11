@@ -17,10 +17,11 @@ type User struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// Relations
-	Plans     []WorkoutPlan        `gorm:"foreignKey:UserID" json:"plans,omitempty"`
-	Logs      []WorkoutLog         `gorm:"foreignKey:UserID" json:"logs,omitempty"`
-	Profile   UserProfile          `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"profile,omitempty"`
-	Exercises []ExerciseDefinition `gorm:"foreignKey:UserID" json:"exercises,omitempty"`
+	Plans      []WorkoutPlan        `gorm:"foreignKey:UserID" json:"plans,omitempty"`
+	Logs       []WorkoutLog         `gorm:"foreignKey:UserID" json:"logs,omitempty"`
+	Profile    UserProfile          `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"profile,omitempty"`
+	Exercises  []ExerciseDefinition `gorm:"foreignKey:UserID" json:"exercises,omitempty"`
+	AIRequests []AIRequestLog       `gorm:"foreignKey:UserID" json:"aiRequests,omitempty"`
 }
 
 type UserProfile struct {
@@ -92,4 +93,11 @@ type LogSet struct {
 	Weight        float64 `json:"weight"`
 	Reps          int     `json:"reps"`
 	Completed     bool    `json:"completed"`
+}
+
+type AIRequestLog struct {
+	ID        string    `gorm:"primaryKey;type:text" json:"id"`
+	UserID    string    `gorm:"index;type:text" json:"userId"`
+	Type      string    `gorm:"type:text" json:"type"`
+	CreatedAt time.Time `json:"createdAt"`
 }

@@ -19,39 +19,39 @@ func ConnectDatabase(dsn string) {
 	if dsn == "" {
 		// Check for DATABASE_URL first (for services like Render that provide full connection string)
 		dsn = os.Getenv("DATABASE_URL")
-		
+
 		// If DATABASE_URL not set, build DSN from individual env vars
 		if dsn == "" {
 			host := os.Getenv("DB_HOST")
 			if host == "" {
 				host = "localhost"
 			}
-			
+
 			port := os.Getenv("DB_PORT")
 			if port == "" {
 				port = "5432"
 			}
-			
+
 			user := os.Getenv("DB_USER")
 			if user == "" {
 				user = "hankmendix"
 			}
-			
+
 			password := os.Getenv("DB_PASSWORD")
 			if password == "" {
 				password = ""
 			}
-			
+
 			dbname := os.Getenv("DB_NAME")
 			if dbname == "" {
 				dbname = "irontrack"
 			}
-			
+
 			sslmode := os.Getenv("DB_SSLMODE")
 			if sslmode == "" {
 				sslmode = "disable"
 			}
-			
+
 			// Build DSN string
 			if password != "" {
 				dsn = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s TimeZone=UTC",
@@ -80,6 +80,7 @@ func ConnectDatabase(dsn string) {
 		&models.WorkoutLog{},
 		&models.LogExercise{},
 		&models.LogSet{},
+		&models.AIRequestLog{},
 	)
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)

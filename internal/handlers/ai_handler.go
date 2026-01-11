@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"irontrack-backend/internal/database"
 	"irontrack-backend/internal/models"
 
 	"github.com/gin-gonic/gin"
@@ -84,6 +85,8 @@ func GenerateWorkoutPlan(c *gin.Context) {
 	plan.IsAiGenerated = true
 	plan.CreatedAt = time.Now()
 
+	logAIRequest(userID, "generate_plan")
+
 	c.JSON(http.StatusOK, plan)
 }
 
@@ -138,5 +141,20 @@ func GenerateProgressReport(c *gin.Context) {
 		}
 	}
 
+	userID := c.GetString("userID")
+	logAIRequest(userID, "generate_report")
+
 	c.JSON(http.StatusOK, gin.H{"response": resultText})
+}
+
+func logAIRequest(userID, typ string) {
+	if userID == "" {
+		return
+	}
+	_ = database.DB.Create(&models.AIRequestLog{
+		ID:        uuid.New().String(),
+		UserID:    userID,
+		Type:      typ,
+		CreatedAt: time.Now(),
+	}).Error
 }
