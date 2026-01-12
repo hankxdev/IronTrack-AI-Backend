@@ -4,3 +4,6 @@ server
 .vscode
 /cmd/server/server
 .env
+irontrack
+irontrack.db
+admin-app
