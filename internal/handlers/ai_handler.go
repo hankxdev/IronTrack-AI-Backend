@@ -25,9 +25,14 @@ func getAIClient(ctx context.Context) (*genai.Client, error) {
 	return genai.NewClient(ctx, option.WithAPIKey(apiKey))
 }
 
+type GeneratePlanRequest struct {
+	models.UserProfile
+	Language string `json:"language"`
+}
+
 func GenerateWorkoutPlan(c *gin.Context) {
-	var profile models.UserProfile
-	if err := c.ShouldBindJSON(&profile); err != nil {
+	var req GeneratePlanRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -44,6 +49,11 @@ func GenerateWorkoutPlan(c *gin.Context) {
 	model.ResponseMIMEType = "application/json"
 	model.SystemInstruction = genai.NewUserContent(genai.Text("You are an expert fitness coach. Create structured, safe, and effective workout plans tailored to the user's biometrics and goals. Output JSON matching the schema: {name, description, targetGoal, exercises: [{name, defaultSets (int), defaultReps (int), muscleGroup, instructions}]}. IMPORTANT: defaultSets and defaultReps must be strictly integers, not strings or ranges."))
 
+	languageInstruction := ""
+	if req.Language != "" {
+		languageInstruction = fmt.Sprintf("Please generate the plan content (name, description, instructions) in %s.", req.Language)
+	}
+
 	prompt := fmt.Sprintf(`Create a workout plan for a user with the following profile:
       - Gender: %s
       - Age: %s
@@ -53,8 +63,9 @@ func GenerateWorkoutPlan(c *gin.Context) {
       - Target Duration: %s
       - Experience Level: %s
       
+      %s
       Provide a comprehensive single-day example routine that fits this duration and physical profile.`,
-		profile.Gender, profile.Age, profile.Height, profile.Weight, profile.MainGoal, profile.WorkoutDuration, profile.ExperienceLevel)
+		req.Gender, req.Age, req.Height, req.Weight, req.MainGoal, req.WorkoutDuration, req.ExperienceLevel, languageInstruction)
 
 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
