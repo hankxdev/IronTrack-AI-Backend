@@ -37,7 +37,10 @@ func GenerateWorkoutPlan(c *gin.Context) {
 		return
 	}
 
-	ctx := context.Background()
+	// Create context with timeout to prevent hanging API calls
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
 	client, err := getAIClient(ctx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -51,7 +54,26 @@ func GenerateWorkoutPlan(c *gin.Context) {
 
 	languageInstruction := ""
 	if req.Language != "" {
-		languageInstruction = fmt.Sprintf("Please generate the plan content (name, description, instructions) in %s.", req.Language)
+		// Map common language codes to readable names for clearer AI prompt
+		languageMap := map[string]string{
+			"en": "English",
+			"zh": "Chinese",
+			"es": "Spanish",
+			"fr": "French",
+			"de": "German",
+			"ja": "Japanese",
+			"ko": "Korean",
+			"pt": "Portuguese",
+			"it": "Italian",
+			"ru": "Russian",
+		}
+
+		languageName := req.Language
+		if fullName, exists := languageMap[req.Language]; exists {
+			languageName = fullName
+		}
+
+		languageInstruction = fmt.Sprintf("IMPORTANT: Generate ALL plan content (name, description, targetGoal, exercise names, instructions, etc.) in %s language.", languageName)
 	}
 
 	prompt := fmt.Sprintf(`Create a workout plan for a user with the following profile:
@@ -69,7 +91,11 @@ func GenerateWorkoutPlan(c *gin.Context) {
 
 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate content: " + err.Error()})
+		if ctx.Err() == context.DeadlineExceeded {
+			c.JSON(http.StatusRequestTimeout, gin.H{"error": "AI request timed out after 60 seconds. Please try again."})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate workout plan: " + err.Error()})
+		}
 		return
 	}
 
@@ -116,7 +142,10 @@ func GenerateProgressReport(c *gin.Context) {
 		return
 	}
 
-	ctx := context.Background()
+	// Create context with timeout to prevent hanging API calls
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
 	client, err := getAIClient(ctx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -139,7 +168,11 @@ func GenerateProgressReport(c *gin.Context) {
 
 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate content: " + err.Error()})
+		if ctx.Err() == context.DeadlineExceeded {
+			c.JSON(http.StatusRequestTimeout, gin.H{"error": "AI request timed out after 60 seconds. Please try again."})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate progress report: " + err.Error()})
+		}
 		return
 	}
 
