@@ -32,11 +32,11 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           script_stop: false
           script: |
-            if systemctl list-units --type=service | grep -q irontrack.service; then
+            if systemctl is-active --quiet irontrack.service; then
               echo "🛑 Stopping irontrack..."
               systemctl stop irontrack
             else
-              echo "⚠️ irontrack.service not found, skipping stop."
+              echo "⚠️ irontrack.service not running or not found, skipping stop."
             fi
 
       - name: Upload new binary
