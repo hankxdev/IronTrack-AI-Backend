@@ -30,7 +30,7 @@ func TestMain(m *testing.M) {
 }
 
 func setupTestRouter() *gin.Engine {
-	return router.SetupRouter()
+	return router.SetupRouter("test-commit", "test-time")
 }
 
 func TestRegisterAndLogin(t *testing.T) {

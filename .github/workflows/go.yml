@@ -21,7 +21,8 @@ jobs:
       - name: Build Linux binary
         run: |
           mkdir -p build
-          GOOS=linux GOARCH=amd64 go build -o build/irontrack ./cmd/server
+          LDFLAGS="-X main.GitCommit=${GITHUB_SHA:0:7} -X main.BuildTime=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          GOOS=linux GOARCH=amd64 go build -ldflags "$LDFLAGS" -o build/irontrack ./cmd/server
 
       - name: Stop service before deploy
         uses: appleboy/ssh-action@v1.2.0
@@ -60,18 +61,20 @@ jobs:
             systemctl start irontrack
             systemctl status irontrack --no-pager
 
-      - name: Health Check
+      - name: Health Check & Version Verification
         run: |
-          echo "🔍 Checking health at https://b.momane.com/health..."
+          SHORT_SHA=${GITHUB_SHA:0:7}
+          echo "🔍 Checking health and version $SHORT_SHA at https://b.momane.com/health..."
           # Try up to 5 times with 10s delay
           for i in {1..5}; do
             RESPONSE=$(curl -s https://b.momane.com/health)
-            if echo "$RESPONSE" | grep -q '"status":"healthy"'; then
-              echo "✅ Health check passed: $RESPONSE"
+            if echo "$RESPONSE" | grep -q '"status":"healthy"' && echo "$RESPONSE" | grep -q "\"version\":\"$SHORT_SHA\""; then
+              echo "✅ Health check and version verification passed: $RESPONSE"
               exit 0
             fi
-            echo "⏳ Waiting for service to be healthy (attempt $i/5)..."
+            echo "⏳ Waiting for service to be healthy and updated (attempt $i/5)..."
+            echo "Current response: $RESPONSE"
             sleep 10
           done
-          echo "❌ Health check failed after 5 attempts"
+          echo "❌ Health check or version verification failed after 5 attempts"
           exit 1

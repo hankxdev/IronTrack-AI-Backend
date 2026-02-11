@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter() *gin.Engine {
+func SetupRouter(gitCommit, buildTime string) *gin.Engine {
 	r := gin.Default()
 
 	// Trusted Proxies Setup
@@ -47,8 +47,10 @@ func SetupRouter() *gin.Engine {
 	// Health check endpoint (no auth required)
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"status":  "healthy",
-			"service": "irontrack-backend",
+			"status":     "healthy",
+			"service":    "irontrack-backend",
+			"version":    gitCommit,
+			"build_time": buildTime,
 		})
 	})
 
