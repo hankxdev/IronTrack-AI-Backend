@@ -1,0 +1,931 @@
+{
+  "info": {
+    "name": "IronTrack AI Backend API",
+    "description": "Complete API test collection for IronTrack AI Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plan_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "exercise_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "log_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "health"
+          ]
+        },
+        "description": "Check API health status and version info"
+      }
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.user && response.user.id) {",
+                  "        pm.collectionVariables.set('user_id', response.user.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('token', response.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "me"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Save Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"gender\": \"Male\",\n  \"age\": \"28\",\n  \"height\": \"175cm\",\n  \"weight\": \"75kg\",\n  \"mainGoal\": \"Muscle gain\",\n  \"workoutDuration\": \"60 minutes\",\n  \"experienceLevel\": \"Intermediate\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workout Plans",
+      "item": [
+        {
+          "name": "Get Plans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/plans",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "plans"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Plan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) {",
+                  "        pm.collectionVariables.set('plan_id', response.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Upper Body Strength\",\n  \"description\": \"Focus on chest, back, and arms\",\n  \"targetGoal\": \"Muscle gain\",\n  \"exercises\": [\n    {\n      \"name\": \"Bench Press\",\n      \"defaultSets\": 4,\n      \"defaultReps\": 8,\n      \"muscleGroup\": \"Chest\",\n      \"instructions\": \"Lie on bench, lower bar to chest, press up\"\n    },\n    {\n      \"name\": \"Pull-ups\",\n      \"defaultSets\": 3,\n      \"defaultReps\": 10,\n      \"muscleGroup\": \"Back\",\n      \"instructions\": \"Hang from bar, pull chin over bar\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/plans",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "plans"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Plan",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/plans/{{plan_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "plans",
+                "{{plan_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Exercises",
+      "item": [
+        {
+          "name": "Get Exercises",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/exercises",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "exercises"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Exercise",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) {",
+                  "        pm.collectionVariables.set('exercise_id', response.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Squat\",\n  \"muscleGroup\": \"Legs\",\n  \"instructions\": \"Stand with feet shoulder-width apart, lower hips back and down\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/exercises",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "exercises"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Exercise",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/exercises/{{exercise_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "exercises",
+                "{{exercise_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workout Logs",
+      "item": [
+        {
+          "name": "Get Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/logs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "logs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Log",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) {",
+                  "        pm.collectionVariables.set('log_id', response.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"{{plan_id}}\",\n  \"startTime\": \"2026-02-12T10:00:00Z\",\n  \"endTime\": \"2026-02-12T11:00:00Z\",\n  \"exercises\": [\n    {\n      \"exerciseName\": \"Bench Press\",\n      \"muscleGroup\": \"Chest\",\n      \"sets\": [\n        {\n          \"reps\": 8,\n          \"weight\": 60\n        },\n        {\n          \"reps\": 8,\n          \"weight\": 65\n        }\n      ]\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/logs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "logs"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Features",
+      "item": [
+        {
+          "name": "Generate Workout Plan (English)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"gender\": \"Male\",\n  \"age\": \"28\",\n  \"height\": \"175cm\",\n  \"weight\": \"75kg\",\n  \"mainGoal\": \"Muscle gain\",\n  \"workoutDuration\": \"60 minutes\",\n  \"experienceLevel\": \"Intermediate\",\n  \"language\": \"en\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-plan",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "generate-plan"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Workout Plan (Chinese)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"gender\": \"Male\",\n  \"age\": \"28\",\n  \"height\": \"175cm\",\n  \"weight\": \"75kg\",\n  \"mainGoal\": \"Muscle gain\",\n  \"workoutDuration\": \"60 minutes\",\n  \"experienceLevel\": \"Intermediate\",\n  \"language\": \"zh\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-plan",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "generate-plan"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Progress Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"range\": \"Last 30 days\",\n  \"count\": 12,\n  \"hours\": 15,\n  \"minutes\": 30,\n  \"topMuscle\": \"Chest\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/generate-report",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "generate-report"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Admin Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/summary",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "summary"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin Created User\",\n  \"email\": \"admin.user@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"User\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"role\": \"Admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "{{user_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "{{user_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Plans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/plans",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "plans"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin Plan\",\n  \"description\": \"Created by admin\",\n  \"targetGoal\": \"General fitness\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/plans",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "plans"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Plan",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/plans/{{plan_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "plans",
+                "{{plan_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Exercises",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/exercises",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "exercises"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Exercise",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Deadlift\",\n  \"muscleGroup\": \"Back\",\n  \"instructions\": \"Lift bar from ground to standing position\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/exercises",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "exercises"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Exercise",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/exercises/{{exercise_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "exercises",
+                "{{exercise_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List AI Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/ai-requests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "ai-requests"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Bulk Upload Exercises",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"exercises\": [\n    {\n      \"name\": \"Push-up\",\n      \"muscleGroup\": \"Chest\",\n      \"instructions\": \"Lower body to ground, push back up\"\n    },\n    {\n      \"name\": \"Plank\",\n      \"muscleGroup\": \"Core\",\n      \"instructions\": \"Hold body in straight line on forearms\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/exercises/bulk",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "exercises",
+                "bulk"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
